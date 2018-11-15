@@ -1,24 +1,15 @@
-const express = require('express');
-const app = express();
-const compression = require('compression');
+console.log("index.js running!");
 
-app.use(compression());
+var express = require("express");
 
-if (process.env.NODE_ENV != 'production') {
-    app.use(
-        '/bundle.js',
-        require('http-proxy-middleware')({
-            target: 'http://localhost:8081/'
-        })
-    );
-} else {
-    app.use('/bundle.js', (req, res) => res.sendFile(`${__dirname}/bundle.js`));
-}
+var app = express();
 
-app.get('*', function(req, res) {
-    res.sendFile(__dirname + '/index.html');
+app.use(express.static("public"));
+
+app.get("/", (req, res) => {
+    res.sendFile(__dirname + "/index.html");
 });
 
-app.listen(8080, function() {
-    console.log("I'm listening.");
+app.listen(process.env.PORT || 8080, () => {
+    console.log("LISTENING ...");
 });
