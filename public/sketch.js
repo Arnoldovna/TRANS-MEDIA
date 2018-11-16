@@ -1,29 +1,31 @@
 var movie;
-// / Create a capturer that exports a WebM video
-var capturer = new CCapture({ format: "webm" });
 var canvas;
-var playButton;
+
 var playPressed = false;
+var recordPressed = false;
+var playingInThisMoment = false;
 var webcamOn = true;
+
 var x = 0;
 var y = 0;
+var yMobile;
+var xMobile;
+
 var dropzone;
 var inputName;
-// var movieWidth = 535;
-// var movieHeight = 315;
+
 var movieWidth = 750;
 var movieHeight = 422;
-var playingInThisMoment = false;
 var movieEvent;
-var inputField;
+
 var submitButton;
-var movieInput;
 var verticalStripesButton;
 var horizontalStripesButton;
 var verticalMeltButton;
 var horizontalMeltButton;
 var clearCanvasButton;
-var progress;
+var saveCanvasButton;
+var playButton;
 
 var widthSliderD;
 var heightSliderD;
@@ -40,19 +42,10 @@ var yPixelSliderValueD;
 var xPixelSliderValueS;
 var yPixelSliderValueS;
 
-var yMobile;
-var xMobile;
-
-var saveCanvasButton;
-var containerButtons;
 var sliderContainer;
-var heightSliderValueDNumber;
-var numberHSD;
-// var webcam = document.getElementById("webcam");
-// var widthSliderS;
-// var heightSliderS;
+var containerButtons;
 
-//-------------------------------SETUP-----------------------------------------------------
+//-------------------------------SETUP------------------------------------
 function setup() {
     divName = createDiv("").addClass("divName");
     fileName = createDiv("").addClass("fileName");
@@ -71,17 +64,13 @@ function setup() {
 
     createdragZone();
 
-    // inputField = createInput("insert url to video").addClass("urlInput");
-    // submitButton = createButton("submit").addClass("button");
-    // submitButton.mousePressed(submitFile);
-
     document.getElementById("webcam").addEventListener("click", function() {
         console.log("click");
         startWebcam();
     });
 }
 
-//--------------------------DRAW LOOP-----------------------------------------
+//------------------------------DRAW LOOP-----------------------------------
 
 function draw() {
     if (playingInThisMoment) {
@@ -91,16 +80,56 @@ function draw() {
         return;
     }
 }
-//---------------------------REFRESH-----------------------------------------
-function refresh() {
-    setTimeout(function() {
-        location.reload();
-    }, 100);
-}
 
-//----------------------------WEBCAM-----------------------------------------
+//------------------------DRAG AND DROP BOX--------------------------------
+function createdragZone() {
+    createP("drag your mp4 file here").id("dropzone");
+    dropzone = select("#dropzone");
+    dropzone.dragOver(highlight);
+    dropzone.dragLeave(unhighlight);
+    dropzone.drop(getFile, unhighlight);
+}
+//---------------------------GET FILE--------------------------------------
+function getFile(file) {
+    pixelDensity(1);
+    dropzone.hide();
+    inputName = createDiv(file.name)
+        .addClass("inputName")
+        .parent(fileName);
+    document.querySelector(".fileName").style.display = "table";
+    document.getElementById("webcam").style.display = "none";
+    movie = createVideo(file.data).id("video");
+    movie.size(movieWidth, movieHeight);
+    document.getElementById("video").controls = true;
+
+    videoEvents();
+
+    document.getElementById("defaultCanvas0").style.display = "inline";
+
+    canvas = createCanvas(movieWidth, movieHeight);
+    canvas.background(255);
+
+    containerButtons = createDiv("").addClass("containerButtons");
+    sliderContainer = createDiv("").addClass("sliderContainer");
+    createPlayButton();
+    createEffectButtons();
+    createSaveCanvasButton();
+    createFullScreenButton();
+
+    createXPixelSliderS();
+    createYPixelSliderD();
+    // createWidthSliderS();
+
+    createYPixelSliderS();
+    createWidthSliderD();
+
+    // numberHSD = createP(heightSliderValueD).parent(sliderContainer);
+
+    createStepSliderM();
+    createHeightSliderD();
+}
+//----------------------------WEBCAM---------------------------------------
 function startWebcam() {
-    console.log("inside");
     document.querySelector("#dropzone").style.display = "none";
     document.getElementById("webcam").style.display = "none";
     pixelDensity(1);
@@ -112,7 +141,6 @@ function startWebcam() {
 
     movie = createCapture(VIDEO).id("video");
     movie.size(movieWidth, movieHeight);
-    // document.getElementById("video").controls = true;
 
     videoEvents();
 
@@ -123,27 +151,22 @@ function startWebcam() {
 
     containerButtons = createDiv("").addClass("containerButtons");
     sliderContainer = createDiv("").addClass("sliderContainer");
+
     createStartWebcamButton();
+
     createEffectButtons();
     createSaveCanvasButton();
     createFullScreenButton();
 
-    // createRandomValueButton();
-
     createXPixelSliderS();
     createYPixelSliderD();
-    // createWidthSliderS();
-
     createYPixelSliderS();
     createWidthSliderD();
-
     createStepSliderM();
     createHeightSliderD();
-
-    // numberValues();
 }
 
-//----------------------------------DESIRED EFFECT LOGIC-----------------------------------------
+//----------------------DESIRED EFFECT LOGIC-------------------------------
 
 function desiredEffect() {
     document.getElementById("verticalS").onclick = function() {
@@ -177,7 +200,7 @@ function desiredEffect() {
     };
 }
 
-//----------------------------------PLAY VIDEO------------------------------------------
+//----------------------------PLAY VIDEO-----------------------------------
 function playVideo() {
     if (playPressed) {
         movie.pause();
@@ -202,7 +225,7 @@ function playWebcam() {
     webcamOn = !webcamOn;
 }
 
-//-------------------------DRAG AND DROP STYLING------------------------------------------------
+//-------------------------DRAG AND DROP STYLING--------------------------
 function highlight() {
     dropzone.style("background-color", "#fafafa");
 }
@@ -211,72 +234,7 @@ function unhighlight() {
     dropzone.style("background-color", "#ffffff");
 }
 
-//----------------------LINKS--WIP- NOT IMPLEMENTED YET------------------------------------------
-function submitFile() {
-    if (!!inputField.value() && inputField.value() != "insert url to video") {
-        movieInput = inputField.value();
-
-        console.log(movieInput);
-
-        //load file obj
-        // and pass it to getFile(fileObj)
-    }
-}
-
-//---------------------------GET FILE--------------------------------
-function getFile(file) {
-    pixelDensity(1);
-    dropzone.hide();
-    inputName = createDiv(file.name)
-        .addClass("inputName")
-        .parent(fileName);
-    document.querySelector(".fileName").style.display = "table";
-    document.getElementById("webcam").style.display = "none";
-    movie = createVideo(file.data).id("video");
-    movie.size(movieWidth, movieHeight);
-    document.getElementById("video").controls = true;
-
-    videoEvents();
-
-    document.getElementById("defaultCanvas0").style.display = "inline";
-
-    canvas = createCanvas(movieWidth, movieHeight);
-    canvas.background(255);
-
-    containerButtons = createDiv("").addClass("containerButtons");
-    sliderContainer = createDiv("").addClass("sliderContainer");
-    createPlayButton();
-    createEffectButtons();
-    createSaveCanvasButton();
-    createFullScreenButton();
-    // createRandomValueButton();
-
-    createXPixelSliderS();
-    createYPixelSliderD();
-    // createWidthSliderS();
-
-    createYPixelSliderS();
-    createWidthSliderD();
-
-    // numberHSD = createP(heightSliderValueD).parent(sliderContainer);
-
-    createStepSliderM();
-    createHeightSliderD();
-}
-
-function createSaveCanvasButton() {
-    saveCanvasButton = createButton("SNAPSHOT")
-        .addClass("button saveCanvasButton")
-        .parent(containerButtons);
-    saveCanvasButton.mouseClicked(makeSnapshot);
-}
-function makeSnapshot() {
-    saveCanvas("TransMedia", "jpg");
-}
-
-//------------------------WEBCAM---------------------------------------
-
-//----------------------FEW VIDEO EVENTS -------------------------
+//------------------------FEW VIDEO EVENTS -------------------------------
 function videoEvents() {
     movieEvent = document.getElementById("video");
 
@@ -304,16 +262,7 @@ function videoEvents() {
     console.log("playing?:", playingInThisMoment);
 }
 
-//------------------------DRAG AND DROP BOX--------------------------------
-function createdragZone() {
-    createP("drag your mp4 file here").id("dropzone");
-    dropzone = select("#dropzone");
-    dropzone.dragOver(highlight);
-    dropzone.dragLeave(unhighlight);
-    dropzone.drop(getFile, unhighlight);
-}
-
-//---------------------------BUTTONS--------------------------------
+//---------------------------BUTTONS--------------------------------------
 function createPlayButton() {
     playButton = createButton("LOOP")
         .addClass("button playButton")
@@ -365,13 +314,6 @@ function createEffectButtons() {
     clearCanvasButton.mousePressed(clearCanvas);
 }
 
-function createRandomValueButton() {
-    randomValueButton = createButton("RANDOM").addClass("button random");
-    // .parent(containerButtons);
-
-    randomValueButton.mousePressed(randomSliderValue);
-}
-
 function createFullScreenButton() {
     fullScreenButton = createButton("FULL SCREEN")
         .addClass("button fullscreen")
@@ -398,7 +340,24 @@ function toggleFullscreen() {
     }
 }
 
-//---------------------------EFFECT FUNCTIONS------------------------------------------
+function createSaveCanvasButton() {
+    saveCanvasButton = createButton("SNAPSHOT")
+        .addClass("button saveCanvasButton")
+        .parent(containerButtons);
+    saveCanvasButton.mouseClicked(makeSnapshot);
+}
+
+function makeSnapshot() {
+    saveCanvas("TransMedia", "jpg");
+}
+
+//-----------------------------REFRESH-----------------------------------
+function refresh() {
+    setTimeout(function() {
+        location.reload();
+    }, 100);
+}
+//---------------------------EFFECT FUNCTIONS----------------------------
 
 function verticalStripes() {
     giveSliderValue();
@@ -419,7 +378,7 @@ function verticalStripes() {
     if (x > movieWidth) {
         x = 0;
     }
-    console.log("x:", x);
+    // console.log("x:", x);
 }
 
 function horizontalStripes() {
@@ -483,7 +442,7 @@ function horizontalMelt() {
     y = y + 1;
 }
 
-//---------------------------CREATE SLIDER------------------------------------
+//---------------------------CREATE SLIDER-------------------------------
 
 function createYPixelSliderD() {
     var yPixelSliderDivD = createDiv(" Y coordinate of the Destination:")
@@ -539,38 +498,88 @@ function createHeightSliderD() {
         .addClass("sliderDiv heightSliderD")
         .parent(sliderContainer);
 
-    // numberHSD = createP(heightSliderValueD).parent(heightSliderDiv);
+    heightSliderD = createSlider(0, height, height).parent(heightSliderDiv);
 
-    heightSliderD = createSlider(0, height, height)
-        .addClass("numberHSD")
-        .parent(heightSliderDiv);
-    // numberHSD = createP("value").parent(heightSliderD);
-    // console.log("number", heightSliderD.value());
+    //---------------------------SLIDER VALUES------------------------------------
+    function giveSliderValue() {
+        widthSliderValueD = widthSliderD.value();
+        heightSliderValueD = heightSliderD.value();
+        yPixelSliderValueD = yPixelSliderD.value();
+        xPixelSliderValueS = xPixelSliderS.value();
+        yPixelSliderValueS = yPixelSliderS.value();
+        stepSliderValueM = stepSliderM.value();
+        xMobile = x * stepSliderValueM;
+        yMobile = y * stepSliderValueM;
+    }
+
+    // function createAllSlider(){
+    function createYPixelSliderD() {
+        var yPixelSliderDivD = createDiv(" Y coordinate of the Destination:")
+            .addClass("sliderDiv yPixelSliderD")
+            .parent(sliderContainer);
+
+        yPixelSliderD = createSlider(0, height, 1).parent(yPixelSliderDivD);
+    }
+
+    function createXPixelSliderS() {
+        var xPixelSliderDivS = createDiv(" X coordinate of the Source:")
+            .addClass("sliderDiv xPixelSliderS")
+            .parent(sliderContainer);
+
+        xPixelSliderS = createSlider(0, width, width / 2).parent(
+            xPixelSliderDivS
+        );
+    }
+
+    function createYPixelSliderS() {
+        var yPixelSliderDivS = createDiv(" Y coordinate of the Source:")
+            .addClass("sliderDiv yPixelSliderS")
+            .parent(sliderContainer);
+
+        yPixelSliderS = createSlider(0, height, height / 2).parent(
+            yPixelSliderDivS
+        );
+    }
+
+    function createWidthSliderS() {
+        var widthSliderDivS = createDiv("Source input Width:")
+            .addClass("sliderDiv WidthSliderS")
+            .parent(sliderContainer);
+
+        widthSliderS = createSlider(1, width, 1).parent(widthSliderDivS);
+    }
+
+    function createStepSliderM() {
+        var stepSliderDivM = createDiv("Steps only for Melt effect:")
+            .addClass("sliderDiv stepSliderM")
+            .parent(sliderContainer);
+
+        stepSliderM = createSlider(1, 10, 4).parent(stepSliderDivM);
+    }
+
+    function createWidthSliderD() {
+        var widthSliderDiv = createDiv("Destination output Width:")
+            .addClass("sliderDiv widthSliderD")
+            .parent(sliderContainer);
+        widthSliderD = createSlider(0, width, 1).parent(widthSliderDiv);
+    }
+
+    function createHeightSliderD() {
+        var heightSliderDiv = createDiv("destination output height:")
+            .addClass("sliderDiv heightSliderD")
+            .parent(sliderContainer);
+
+        heightSliderD = createSlider(0, height, height).parent(heightSliderDiv);
+    }
 }
 
-//---------------------------SLIDER VALUES------------------------------------
 function giveSliderValue() {
     widthSliderValueD = widthSliderD.value();
-
-    // console.log(widthSliderD);
-
     heightSliderValueD = heightSliderD.value();
-    //heightSliderValueDNumber= createP(heightSliderValueD).parent(heightSliderDiv);
-    // heightSliderD.input(showValue);
-
-    // console.log("heightSliderValueD", heightSliderValueD);
     yPixelSliderValueD = yPixelSliderD.value();
-    // console.log("yPixelSliderValueD", yPixelSliderValueD);
     xPixelSliderValueS = xPixelSliderS.value();
-    // console.log("xPixelSliderValueS", xPixelSliderValueS);
     yPixelSliderValueS = yPixelSliderS.value();
-    // console.log("yPixelSliderValueS", yPixelSliderValueS);
-
     stepSliderValueM = stepSliderM.value();
     xMobile = x * stepSliderValueM;
     yMobile = y * stepSliderValueM;
 }
-
-// function showValue() {
-//     numberHSD.html(heightSliderValueD);
-// }
