@@ -5,3 +5,8 @@ visit https://transmedia.herokuapp.com
 (WIP-best view on chrome 80% 13"screen)
 
 <img src="/public/presentation.gif"/>
+
+TRANS|MEDIA Screenshots:
+
+<img src="/public/Bildschirmfoto 2018-11-23 um 11.05.25.png"/>
+
